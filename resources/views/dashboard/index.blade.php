@@ -7,7 +7,7 @@
 @section('content')
     {{-- Flash message --}}
     @if (session('success'))
-        <div class="mb-4 flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm font-medium text-emerald-700 backdrop-blur">
+        <div class="mb-4 flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm font-medium text-emerald-700">
             <x-icon name="check" class="h-5 w-5" />
             {{ session('success') }}
         </div>
@@ -121,12 +121,12 @@
                         <tbody>
                             @forelse ($items as $i => $b)
                                 <tr>
-                                    <td>{{ ($page - 1) * 8 + $i + 1 }}</td>
-                                    <td class="font-medium">{{ $b['nama'] }}</td>
-                                    <td>{{ $b['spesifikasi'] }}</td>
-                                    <td><span class="badge-blue">{{ $b['satuan'] }}</span></td>
-                                    <td class="text-xs">{{ \App\Support\DataProvider::unitName($b['unit_id']) }}</td>
-                                    <td class="text-right font-semibold">{{ $b['stok'] }}</td>
+                                    <td>{{ ($items->currentPage() - 1) * $items->perPage() + $i + 1 }}</td>
+                                    <td class="font-medium">{{ $b->nama }}</td>
+                                    <td>{{ $b->spesifikasi }}</td>
+                                    <td><span class="badge-blue">{{ $b->satuan?->nama ?? '-' }}</span></td>
+                                    <td class="text-xs">{{ $b->unit?->nama ?? '-' }}</td>
+                                    <td class="text-right font-semibold">{{ $b->stok }}</td>
                                 </tr>
                             @empty
                                 <tr>
@@ -137,24 +137,9 @@
                     </table>
                 </div>
 
-                {{-- Pagination --}}
-                @if ($totalPages > 1)
-                    <div class="mt-4 flex items-center justify-between">
-                        <span class="text-xs text-deep-space-600/60">Menampilkan {{ count($items) }} dari {{ $total }} data</span>
-                        <div class="flex gap-1">
-                            @if ($page > 1)
-                                <a href="{{ route('dashboard', array_merge(request()->query(), ['page' => $page - 1])) }}" class="btn-ghost !px-3 !py-1.5 !text-xs"><x-icon name="chevron-left" class="h-4 w-4" /></a>
-                            @endif
-                            @for ($p = 1; $p <= $totalPages; $p++)
-                                <a href="{{ route('dashboard', array_merge(request()->query(), ['page' => $p])) }}"
-                                   class="btn {{ $p === $page ? 'btn-primary' : 'btn-ghost' }} !px-3 !py-1.5 !text-xs">{{ $p }}</a>
-                            @endfor
-                            @if ($page < $totalPages)
-                                <a href="{{ route('dashboard', array_merge(request()->query(), ['page' => $page + 1])) }}" class="btn-ghost !px-3 !py-1.5 !text-xs"><x-icon name="chevron-right" class="h-4 w-4" /></a>
-                            @endif
-                        </div>
-                    </div>
-                @endif
+                <div class="mt-4">
+                    {{ $items->links() }}
+                </div>
             </div>
         </div>
     </div>

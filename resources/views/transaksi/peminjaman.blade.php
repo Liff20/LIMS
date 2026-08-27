@@ -6,9 +6,19 @@
 
 @section('content')
     @if (session('success'))
-        <div class="mb-4 flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm font-medium text-emerald-700 backdrop-blur">
+        <div class="mb-4 flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm font-medium text-emerald-700">
             <x-icon name="check" class="h-5 w-5" />
             {{ session('success') }}
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div class="mb-4 rounded-2xl border border-red-200 bg-red-50/80 px-4 py-3 text-sm font-medium text-red-700">
+            <ul class="list-inside list-disc space-y-1">
+                @foreach ($errors->all() as $e)
+                    <li>{{ $e }}</li>
+                @endforeach
+            </ul>
         </div>
     @endif
 
@@ -32,47 +42,49 @@
 
                     <div>
                         <label class="label" for="tanggal">Tanggal Pinjam</label>
-                        <input class="input" id="tanggal" name="tanggal" type="date" value="{{ date('Y-m-d') }}" required>
+                        <input class="input" id="tanggal" name="tanggal" type="date" value="{{ old('tanggal', date('Y-m-d')) }}" required>
                     </div>
 
                     <div>
-                        <label class="label" for="peminjam">Peminjam</label>
-                        <input class="input" id="peminjam" name="peminjam" list="peminjam-list" placeholder="Cari & pilih nama peminjam…" required>
-                        <datalist id="peminjam-list">
+                        <label class="label" for="user_id">Peminjam</label>
+                        <select class="input" id="user_id" name="user_id" required>
+                            <option value="">Pilih peminjam…</option>
                             @foreach ($users as $u)
-                                <option value="{{ $u['nama'] }}">{{ $u['role'] }}</option>
+                                <option value="{{ $u->id }}" @selected(old('user_id') == $u->id)>{{ $u->name }} ({{ $u->role }})</option>
                             @endforeach
-                        </datalist>
+                        </select>
                     </div>
 
                     <div>
-                        <label class="label" for="barang">Barang (BHP)</label>
-                        <input class="input" id="barang" name="barang" list="barang-list" placeholder="Cari & pilih data barang…" required>
-                        <datalist id="barang-list">
+                        <label class="label" for="barang_id">Barang (BHP)</label>
+                        <select class="input" id="barang_id" name="barang_id" required>
+                            <option value="">Pilih barang…</option>
                             @foreach ($barang as $b)
-                                <option value="{{ $b['nama'] }}">{{ $b['spesifikasi'] }} — {{ $b['satuan'] }}</option>
+                                <option value="{{ $b->id }}" @selected(old('barang_id') == $b->id)>
+                                    {{ $b->nama }} — {{ $b->spesifikasi }} ({{ $b->satuan?->nama }}, stok {{ $b->stok }})
+                                </option>
                             @endforeach
-                        </datalist>
+                        </select>
                     </div>
 
                     <div>
                         <label class="label" for="qty">QTY (Jumlah)</label>
-                        <input class="input" id="qty" name="qty" type="number" min="1" placeholder="Jumlah yang dipinjam" required>
+                        <input class="input" id="qty" name="qty" type="number" min="1" value="{{ old('qty', 1) }}" required>
                     </div>
 
                     <div>
-                        <label class="label" for="pemanfaatan">Pemanfaatan</label>
-                        <input class="input" id="pemanfaatan" name="pemanfaatan" list="pemanfaatan-list" placeholder="Cari & pilih pemanfaatan…" required>
-                        <datalist id="pemanfaatan-list">
+                        <label class="label" for="pemanfaatan_id">Pemanfaatan</label>
+                        <select class="input" id="pemanfaatan_id" name="pemanfaatan_id" required>
+                            <option value="">Pilih pemanfaatan…</option>
                             @foreach ($pemanfaatan as $p)
-                                <option value="{{ $p['nama'] }}">{{ $p['deskripsi'] }}</option>
+                                <option value="{{ $p->id }}" @selected(old('pemanfaatan_id') == $p->id)>{{ $p->nama }} — {{ $p->deskripsi }}</option>
                             @endforeach
-                        </datalist>
+                        </select>
                     </div>
 
                     <div>
                         <label class="label" for="keterangan">Keterangan</label>
-                        <textarea class="input" id="keterangan" name="keterangan" rows="3" placeholder="Tambahan penjelasan lain (opsional)"></textarea>
+                        <textarea class="input" id="keterangan" name="keterangan" rows="3" placeholder="Tambahan penjelasan lain (opsional)">{{ old('keterangan') }}</textarea>
                     </div>
 
                     <button type="submit" class="btn-primary w-full">
@@ -91,7 +103,7 @@
                 </h3>
                 <ul class="space-y-2 text-sm text-deep-space-600/80">
                     <li class="flex gap-2"><x-icon name="check" class="h-4 w-4 shrink-0 text-emerald-500" /> Unit terisi otomatis sesuai login Anda.</li>
-                    <li class="flex gap-2"><x-icon name="check" class="h-4 w-4 shrink-0 text-emerald-500" /> Peminjam dicari berdasarkan nama pengguna terdaftar.</li>
+                    <li class="flex gap-2"><x-icon name="check" class="h-4 w-4 shrink-0 text-emerald-500" /> Peminjam dipilih dari pengguna terdaftar.</li>
                     <li class="flex gap-2"><x-icon name="check" class="h-4 w-4 shrink-0 text-emerald-500" /> Barang (BHP) dipilih dari daftar inventaris unit.</li>
                     <li class="flex gap-2"><x-icon name="check" class="h-4 w-4 shrink-0 text-emerald-500" /> Peminjaman langsung tercatat dan mengurangi stok.</li>
                 </ul>
@@ -106,11 +118,11 @@
                         </thead>
                         <tbody>
                             @php $selectedUnit = session('selected_unit', 1); @endphp
-                            @foreach (collect($barang)->where('unit_id', $selectedUnit)->take(6) as $b)
+                            @foreach ($barang->where('unit_id', $selectedUnit)->take(6) as $b)
                                 <tr>
-                                    <td class="font-medium">{{ $b['nama'] }}</td>
-                                    <td class="text-xs">{{ $b['spesifikasi'] }}</td>
-                                    <td class="text-right font-semibold">{{ $b['stok'] }}</td>
+                                    <td class="font-medium">{{ $b->nama }}</td>
+                                    <td class="text-xs">{{ $b->spesifikasi }}</td>
+                                    <td class="text-right font-semibold">{{ $b->stok }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 use App\Support\DataProvider;
 
 class AuthController extends Controller
@@ -22,27 +25,25 @@ class AuthController extends Controller
         $username = strtolower(trim($request->input('username')));
         $password = $request->input('password');
 
-        $user = collect(DataProvider::users())->first(function ($u) use ($username) {
-            return strtolower($u['username']) === $username;
-        });
+        $user = User::where('username', $username)->first();
 
-        // Iterasi 1 (dummy): password default untuk semua akun adalah "password123".
-        if ($user && $password === 'password123') {
+        if ($user && Hash::check($password, $user->password)) {
+            Auth::login($user);
             session([
-                'user_name' => $user['nama'],
-                'user_username' => $user['username'],
-                'user_role' => $user['role'],
-                'user_id' => $user['id'],
+                'user_name' => $user->name,
+                'user_username' => $user->username,
+                'user_role' => $user->role,
+                'user_id' => $user->id,
             ]);
 
-            if ($user['unit_id']) {
-                session(['selected_unit' => (int) $user['unit_id']]);
+            if ($user->unit_id) {
+                session(['selected_unit' => (int) $user->unit_id]);
             }
 
-            return redirect()->route('dashboard')->with('success', 'Selamat datang, ' . $user['nama'] . '!');
+            return redirect()->route('dashboard')->with('success', 'Selamat datang, ' . $user->name . '!');
         }
 
-        return back()->withErrors(['username' => 'Username atau password salah. (Dummy: gunakan password "password123")']);
+        return back()->withErrors(['username' => 'Username atau password salah. (Password default: "password123")']);
     }
 
     public function register()
@@ -65,6 +66,9 @@ class AuthController extends Controller
 
     public function logout()
     {
+        Auth::logout();
+        session()->flush();
+
         return redirect()->route('login');
     }
 }

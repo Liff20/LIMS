@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Barang;
+use App\Models\JenisBarang;
+use App\Models\Unit;
 use App\Support\DataProvider;
 
 class DashboardController extends Controller
@@ -10,41 +13,34 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $jenis = DataProvider::jenisBarang();
-        $barang = DataProvider::barang();
+        $units = DataProvider::units();
 
-        // Filter
         $q = $request->query('q');
         $jenisFilter = $request->query('jenis');
         $unitFilter = $request->query('unit');
 
+        $query = Barang::with(['satuan', 'jenis', 'unit'])->orderBy('id');
+
         if ($q) {
-            $barang = array_values(array_filter($barang, function ($b) use ($q) {
-                return stripos($b['nama'], $q) !== false || stripos($b['spesifikasi'], $q) !== false;
-            }));
+            $query->where(function ($w) use ($q) {
+                $w->where('nama', 'like', "%{$q}%")->orWhere('spesifikasi', 'like', "%{$q}%");
+            });
         }
         if ($jenisFilter) {
-            $barang = array_values(array_filter($barang, fn ($b) => $b['jenis'] === $jenisFilter));
+            $query->whereHas('jenis', fn ($w) => $w->where('nama', $jenisFilter));
         }
         if ($unitFilter) {
-            $barang = array_values(array_filter($barang, fn ($b) => $b['unit_id'] == $unitFilter));
+            $query->where('unit_id', $unitFilter);
         }
 
-        // Pagination sederhana
         $perPage = 8;
-        $page = max(1, (int) $request->query('page', 1));
-        $total = count($barang);
-        $totalPages = max(1, (int) ceil($total / $perPage));
-        $page = min($page, $totalPages);
-        $items = array_slice($barang, ($page - 1) * $perPage, $perPage);
+        $items = $query->paginate($perPage)->withQueryString();
 
         return view('dashboard.index', [
             'ringkasan' => DataProvider::ringkasan(),
             'jenis' => $jenis,
-            'units' => DataProvider::units(),
+            'units' => $units,
             'items' => $items,
-            'page' => $page,
-            'totalPages' => $totalPages,
-            'total' => $total,
             'filters' => ['q' => $q, 'jenis' => $jenisFilter, 'unit' => $unitFilter],
         ]);
     }

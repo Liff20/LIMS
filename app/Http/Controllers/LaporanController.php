@@ -3,28 +3,34 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Peminjaman;
+use App\Models\Supply;
 use App\Support\DataProvider;
 
 class LaporanController extends Controller
 {
     public function keluar(Request $request)
     {
-        $items = DataProvider::peminjaman();
         $q = $request->query('q');
         $dari = $request->query('dari');
         $sampai = $request->query('sampai');
 
+        $query = Peminjaman::with(['user', 'unit', 'barang', 'pemanfaatan'])->orderBy('id', 'desc');
+
         if ($q) {
-            $items = array_values(array_filter($items, fn ($i) =>
-                stripos($i['barang'], $q) !== false || stripos($i['peminjam'], $q) !== false
-            ));
+            $query->where(function ($w) use ($q) {
+                $w->whereHas('barang', fn ($b) => $b->where('nama', 'like', "%{$q}%"))
+                    ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$q}%"));
+            });
         }
         if ($dari) {
-            $items = array_values(array_filter($items, fn ($i) => $i['tanggal'] >= $dari));
+            $query->whereDate('tanggal', '>=', $dari);
         }
         if ($sampai) {
-            $items = array_values(array_filter($items, fn ($i) => $i['tanggal'] <= $sampai));
+            $query->whereDate('tanggal', '<=', $sampai);
         }
+
+        $items = $query->get();
 
         return view('laporan.keluar', [
             'items' => $items,
@@ -35,22 +41,26 @@ class LaporanController extends Controller
 
     public function masuk(Request $request)
     {
-        $items = DataProvider::supply();
         $q = $request->query('q');
         $dari = $request->query('dari');
         $sampai = $request->query('sampai');
 
+        $query = Supply::with(['supplier', 'unit', 'barang'])->orderBy('id', 'desc');
+
         if ($q) {
-            $items = array_values(array_filter($items, fn ($i) =>
-                stripos($i['barang'], $q) !== false || stripos($i['supplier'], $q) !== false
-            ));
+            $query->where(function ($w) use ($q) {
+                $w->whereHas('barang', fn ($b) => $b->where('nama', 'like', "%{$q}%"))
+                    ->orWhereHas('supplier', fn ($s) => $s->where('nama', 'like', "%{$q}%"));
+            });
         }
         if ($dari) {
-            $items = array_values(array_filter($items, fn ($i) => $i['tanggal'] >= $dari));
+            $query->whereDate('tanggal', '>=', $dari);
         }
         if ($sampai) {
-            $items = array_values(array_filter($items, fn ($i) => $i['tanggal'] <= $sampai));
+            $query->whereDate('tanggal', '<=', $sampai);
         }
+
+        $items = $query->get();
 
         return view('laporan.masuk', [
             'items' => $items,
