@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply font-sans text-[#0f172a] antialiased;
+        background:
+            radial-gradient(900px 450px at 6% -5%, rgba(0, 58, 112, 0.10), transparent 60%),
+            radial-gradient(720px 360px at 95% 10%, rgba(244, 197, 66, 0.16), transparent 65%),
+            radial-gradient(600px 300px at 15% 85%, rgba(22, 96, 131, 0.08), transparent 60%),
+            linear-gradient(180deg, #f7fbff, #ebf4ff);
+        background-attachment: fixed;
+    }
+
+    ::selection {
+        @apply bg-brand-500 text-white;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        @apply rounded-full bg-brand-200;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        @apply bg-brand-300;
+    }
+}
+
+@layer components {
+    /* Kartu solid bersih — bukan glass */
+    .card {
+        @apply rounded-[16px] border border-brand-100 bg-white shadow-card;
+    }
+    .card-hover {
+        @apply transition-all duration-300;
+    }
+    .card-hover:hover {
+        @apply -translate-y-1 border-brand-300 shadow-lift;
+    }
+
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+    .btn-primary {
+        @apply btn bg-brand-600 text-white shadow-glow hover:bg-brand-700 active:scale-[.98];
+    }
+    .btn-accent {
+        @apply btn bg-[#f4c542] text-[#61460c] shadow-sm hover:bg-[#f0b72e] active:scale-[.98];
+    }
+    .btn-ghost {
+        @apply btn border border-brand-100 bg-white text-brand-700 hover:bg-brand-50;
+    }
+    .btn-danger {
+        @apply btn bg-red-500/90 text-white hover:bg-red-600;
+    }
+
+    .input {
+        @apply w-full rounded-xl border border-brand-100 bg-white px-4 py-2.5 text-sm text-[#0f172a] placeholder-[#475569]/50 transition focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/25;
+    }
+    .label {
+        @apply mb-1.5 block text-sm font-semibold text-[#0f172a];
+    }
+
+    .badge {
+        @apply inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-xs font-semibold;
+    }
+    .badge-blue {
+        @apply badge bg-brand-50 text-brand-700;
+    }
+    .badge-green {
+        @apply badge bg-[#f0fdf4] text-[#256009];
+    }
+    .badge-amber {
+        @apply badge bg-[#fefce8] text-[#61460c];
+    }
+    .badge-red {
+        @apply badge bg-[#fef2f2] text-[#991b1b];
+    }
+
+    .table-wrap {
+        @apply overflow-hidden rounded-[16px] border border-brand-100 bg-white shadow-card;
+    }
+    .table-base {
+        @apply w-full text-left text-sm;
+    }
+    .table-base thead {
+        @apply bg-brand-600 text-white;
+    }
+    .table-base thead th {
+        @apply px-4 py-3.5 font-semibold;
+    }
+    .table-base tbody tr {
+        @apply border-b border-brand-50 transition hover:bg-brand-50/50;
+    }
+    .table-base tbody td {
+        @apply px-4 py-3 text-[#0f172a];
+    }
+
+    .menu-item {
+        @apply flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-brand-700 transition hover:bg-brand-50 hover:text-brand-800;
+    }
+    .menu-item-active {
+        @apply flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-brand-700;
+        background: linear-gradient(135deg, #dceef7, #ffffff);
+        box-shadow: 0 4px 14px rgba(22, 96, 131, 0.18);
+    }
+
+    .section-title {
+        @apply text-xl font-bold text-brand-700;
+    }
+}
+
+@layer utilities {
+    .text-gradient-brand {
+        @apply bg-gradient-brand bg-clip-text text-transparent;
+    }
+}
